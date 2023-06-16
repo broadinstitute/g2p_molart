@@ -368,12 +368,12 @@ const LmController = function () {
 
     function highlightCallBack(e) {
         if (e.data && e.data.residues.length > 0) {
-            globals.pv.highlightActivePosition(e.data.residues[0].seqNumber);
+            //PV globals.pv.highlightActivePosition(e.data.residues[0].seqNumber);
             const resInfo = e.data.residues[0];
             resInfo.unpSeqNumber = globals.activeStructure.record.mapPosPdbToUnp(resInfo.seqNumber);
             globals.eventEmitter.emit("structureMouseOn", resInfo);
         } else {
-            globals.pv.dehighlightActivePosition();
+            //PV globals.pv.dehighlightActivePosition();
             globals.eventEmitter.emit("structureMouseOff");
         }
     }
@@ -921,7 +921,7 @@ const LmController = function () {
     }
 
     function groupSelected(){
-        return globals.pvContainer.find(".pv3d-svg-icon.selected").length >= 1;
+        return false;//PV globals.pvContainer.find(".pv3d-svg-icon.selected").length >= 1;
     }
 
     function initialize(params) {

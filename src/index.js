@@ -12,7 +12,6 @@ if (!window.$) {
 const events = require('events');
 
 const LmController = require('./lm.controller.js');
-const PvController = require('./pv.controller.js');
 
 const services = require('./services');
 
@@ -63,7 +62,7 @@ class ActiveStructure {
         const self = this;
         return loadRecord(records[0], this.globals).then(() => {
             this.globals.lm.updateHeader();
-            this.globals.pv.highlightActiveStructure();
+            //PV this.globals.pv.highlightActiveStructure();
             this.globals.activeFeature.overlay();
             this.globals.lm.hideErrorMessage();
             this.globals.eventEmitter.emit('structureLoaded');
@@ -264,7 +263,7 @@ class ActiveFeature {
 
     overlay(){
         this.features ? this.globals.lm.mapFeatures(this.features, this.colors) : this.globals.lm.unmapFeature();
-        this.globals.pv.deselectAllOverlayIcons();
+        //PV this.globals.pv.deselectAllOverlayIcons();
     }
 }
 
@@ -293,7 +292,7 @@ class ActiveHighlight {
 
     overlay(){
         if (this.isSet()) {
-            this.globals.pv.deselectAllOverlayIcons();
+            //PV this.globals.pv.deselectAllOverlayIcons();
             this.globals.lm.highlightRegion(this.begin, this.end);
         } else {
             if (!this.globals.lm.groupSelected()){
@@ -350,12 +349,12 @@ const MolArt = function(opts) {
 
     sanitizeInputOpts(opts);
 
-    let pvReady  = false;
+    //PV let pvReady  = false;
 
     const globals = {
         lmCallbackRegistered: false
 
-        ,pv: PvController()
+        //PV ,pv: PvController()
         ,lm: LmController()
 
         ,eventEmitter: new events.EventEmitter()
@@ -379,7 +378,7 @@ const MolArt = function(opts) {
     }
 
     globals.containerId = opts.containerId;
-    globals.pvContainerId = globals.containerId + 'ProtVista';
+    //PV globals.pvContainerId = globals.containerId + 'ProtVista';
     globals.lmContainerId = globals.containerId + 'LiteMol';
 
     showLoadingIcon(globals.containerId);
@@ -387,7 +386,10 @@ const MolArt = function(opts) {
     this.globals = globals;
 
     createPageStructure();
-    initializePlugins(opts).then( () => {updatePageStructure(); hideLoadingIcon(globals.containerId);} );
+    initializePlugins(opts).then( () => {
+        updatePageStructure(); 
+        hideLoadingIcon(globals.containerId);
+    } );
 
 
     function createPageStructure(){
@@ -406,13 +408,15 @@ const MolArt = function(opts) {
                       <button class="ui button pymol">
                            PyMOL
                       </button>
-                      <button class="ui button csv">
-                           CSV
-                      </button>
                     </div>
                 </div>
             </div>
         `).appendTo(globals.container);
+        //PV removed from download message
+        /*  <button class="ui button csv">
+                           CSV
+                      </button>*/
+
         // globals.downloadModal.modal({
         //     context: globals.container
         // });
@@ -430,16 +434,15 @@ const MolArt = function(opts) {
             globals.activeStructure.exportToPymol();
             globals.downloadMessage.css("display", "none");
         });
-        globals.downloadMessage.find(".csv").click(() => {
-            globals.pv.exportToCsv();
-            globals.downloadMessage.css("display", "none");
+        //PV globals.downloadMessage.find(".csv").click(() => {
+        //    globals.pv.exportToCsv();
+        //    globals.downloadMessage.css("display", "none");
+        //});
 
-        });
 
-
-        const pvBlock = $('<div class="pv3d-pv"></div>').appendTo(globals.container);
+        //PV const pvBlock = $('<div class="pv3d-pv"></div>').appendTo(globals.container);
         const lmBlock = $('<div class="pv3d-lm"></div>').appendTo(globals.container);
-        globals.splitBar = $('<div class="pv3d-split-bar"></div>');
+        //PV globals.splitBar = $('<div class="pv3d-split-bar"></div>');
 
         globals.errorMessageContainer = $(`
         <div class="message-container">
@@ -452,32 +455,33 @@ const MolArt = function(opts) {
             <div class="message">.</div>            
         </div>`).appendTo(lmBlock);
 
-        globals.container.append(pvBlock);
-        globals.container.append(globals.splitBar);
+        //PV globals.container.append(pvBlock);
+        //PV globals.container.append(globals.splitBar);
         globals.container.append(lmBlock);
 
         /**
          *************** HEADER
          */
 
-        globals.container.append(`<span class="logo ui label"><a href="${globals.settings.homepage}" target="_blank">MolArt</a></span>`)
+        const headerRow = $(`<div class="pv3d-flex-header"></div>`);
+        lmBlock.append(headerRow);
 
-        const pvHeader = $(`        
-        <div class="pv3d-header pv3d-header-pv">
-                <a class="ui label unp-link pv3d-invisible" href="" target="_blank">
-                    UniProt:
-                    <div class="detail"></div>
-                </a>
-        </div>
-        `);
+        const logo = $(`<div class="logo ui label"><a href="${globals.settings.homepage}" target="_blank">MolArt</a></div>`);
+        headerRow.append(logo);
+
+        //PV globals.container.append(`<span class="logo ui label"><a href="${globals.settings.homepage}" target="_blank">MolArt</a></span>`)
+
+        //PV const pvHeader = $(`        
+        //<div class="pv3d-header pv3d-header-pv">
+        //        <a class="ui label unp-link pv3d-invisible" href="" target="_blank">
+        //            UniProt:
+        //            <div class="detail"></div>
+        //        </a>
+        //</div>
+        //`);
 
         const lmHeader = $(`        
-        <div class="pv3d-header pv3d-header-lm">
-            
-            <div class="pv3d-button pv3d-download" title="Export to PyMol">
-                ${svgSymbols.download}
-            </div>
-            
+        <div class="pv3d-header pv3d-header-lm">            
             <a class="ui label pdb-link pv3d-invisible" href="" target="_blank">                    
                 <div class="detail"></div>
             </a>
@@ -536,14 +540,21 @@ const MolArt = function(opts) {
         lmHeaderList.prepend(iconLeft);
         lmHeaderList.append(iconRight);
 
-        pvBlock.append(pvHeader);
-        lmBlock.append(lmHeader);
+        //PV pvBlock.append(pvHeader);
+        headerRow.append(lmHeader);
+
+        const pymolDownload = $(`
+            <div class="pv3d-button pv3d-download" title="Export to PyMol">
+                ${svgSymbols.download}
+            </div>`
+        );
+        headerRow.append(pymolDownload);
 
         /**
          *************** BODY
          */
 
-        globals.pvContainer = $(`<div id="${globals.pvContainerId}" class="pv-container pv3d-content"></div>`);
+        //PV globals.pvContainer = $(`<div id="${globals.pvContainerId}" class="pv-container pv3d-content"></div>`);
 
         globals.lmContainer = $(`
         <div class="lm-container pv3d-content">
@@ -565,7 +576,7 @@ const MolArt = function(opts) {
             </div>
         </div>
         `);
-        // globals.lmContainer.css('top', pvHeader.outerHeight());
+        globals.lmContainer.css('top', headerRow.outerHeight());
         // .each(function (ix, e) {
         //
         //     $(e).find('#range-1').range({
@@ -585,10 +596,10 @@ const MolArt = function(opts) {
         // });
 
 
-        pvBlock.append(globals.pvContainer);
+        //PV pvBlock.append(globals.pvContainer);
         lmBlock.append(globals.lmContainer);
 
-        globals.container.find('.pv3d-content').css('height', `calc(100% - ${pvHeader.outerHeight(true)}px)`);
+        ///PV globals.container.find('.pv3d-content').css('height', `calc(100% - ${pvHeader.outerHeight(true)}px)`);
 
         // content.on('scroll', () => {
         //     globals.lmContainer.css('top', content.scrollTop());
@@ -605,26 +616,33 @@ const MolArt = function(opts) {
          *************** IFRAME (to listen to resize events [even for scrollbar appearance])
          */
         const iframe = $('<iframe style="height: 0; background-color: transparent; margin: 0; padding: 0; overflow: hidden; border-width: 0; position: absolute; width: 100%;"></iframe>');
-        pvBlock.append(iframe);
+        //PV pvBlock.append(iframe);
+
+        lmBlock.append(iframe);
 
         /**
          *************** EVENT HANDLING
          */
 
+        //PV iframe[0].contentWindow.addEventListener('resize', function(e) {
+        //    resize();
+        //});
         iframe[0].contentWindow.addEventListener('resize', function(e) {
             resize();
         });
 
+        /*PV
         globals.splitBar.mousedown(e => {
             e.preventDefault();
             globals.container.mousemove(function (e) {
                 e.preventDefault();
                 splitBarPositionChange(e);
             })
-        });
+        });*/
+
         globals.container.mouseup(() => {
             globals.container.unbind('mousemove');
-            globals.pv.highlightActiveStructure();
+            //PV globals.pv.highlightActiveStructure();
         });
 
         globals.container.on('scroll', () => {
@@ -646,31 +664,43 @@ const MolArt = function(opts) {
 
     function positionHeadersAndContainersTop(){
 
+        /*PV
         const headerHeight =  globals.container.find('.pv3d-header.pv3d-header-pv').outerHeight();
-        globals.pvContainer.css('top', headerHeight + 'px');
+        //PV globals.pvContainer.css('top', headerHeight + 'px');
         const containerTop = globals.container.offset().top;
-        const pvContainerTop = globals.pvContainer.offset().top;
-        const newHeaderTop = containerTop - pvContainerTop + headerHeight;
+        //PV const pvContainerTop = globals.pvContainer.offset().top;
+        const newHeaderTop = containerTop + headerHeight - pvContainerTop;
 
-        globals.container.find('.pv3d-header').css('top', newHeaderTop + 'px');
+        //PV globals.container.find('.pv3d-header').css('top', newHeaderTop + 'px');
         globals.container.find('.logo').css('top', `${newHeaderTop + 4}px`);
         globals.container.find('.pv3d-lm .message-container').css('top', newHeaderTop + 'px');
 
         globals.lmContainer.css('top', (newHeaderTop + headerHeight) + 'px');
+        */
+
+        // New after PV removal
+        const headerHeight =  globals.container.find('.pv3d-flex-header').outerHeight();
+        globals.lmContainer.css('top', headerHeight + 'px');
+        const lmContainerTop = globals.lmContainer.offset().top;
+        const containerTop = globals.container.offset().top;
+        const newHeaderTop = containerTop + headerHeight - lmContainerTop;
+
+        globals.container.find('.logo').css('top', `${newHeaderTop + 4}px`);
+        globals.container.find('.pv3d-lm .message-container').css('top', newHeaderTop + 'px');
+  
     }
 
     function resize(checkPvReady = true){
-        if (checkPvReady && !pvReady) return;
+        //PV if (checkPvReady && !pvReady) return;
 
-        const pvWidth = globals.container.find('.pv3d-pv').width();
-        const lmWidth = globals.container.find('.pv3d-lm').width();
+        //PV const pvWidth = globals.container.find('.pv3d-pv').width();
+        const newHeaderWidth = globals.container.find('.pv3d-flex-header').width();
+        globals.lmContainer.width(newHeaderWidth);
 
-        globals.container.find('.pv3d-header.pv3d-header-pv').width(pvWidth);
-        globals.container.find('.pv3d-header.pv3d-header-lm').width(lmWidth);
-        globals.lmContainer.width(lmWidth);
+        //PV globals.container.find('.pv3d-header.pv3d-header-pv').width(pvWidth);
 
         positionHeadersAndContainersTop();
-        const contentTop = globals.container.find('.pv3d-header').outerHeight();
+        const contentTop = globals.container.find('.pv3d-flex-header').outerHeight();
 
         const lmFooterHeight = globals.lmContainer.find('.pv3d-footer').height();
         const lmContentHeight = globals.container.height() - contentTop;
@@ -679,9 +709,9 @@ const MolArt = function(opts) {
         globals.lmContainer.find('.lm-component-container').height(lmPluginHeight);
         globals.lmContainer.height(lmContentHeight);
 
-        if (checkPvReady){
-            globals.pv.resized();
-        }
+        //PV if (checkPvReady){
+        //    globals.pv.resized();
+        //}
     }
 
     /***
@@ -704,6 +734,7 @@ const MolArt = function(opts) {
         globals.errorMessageContainer.css('display', 'none');
     }
 
+    /*PV
     function splitBarPositionChange(event){
         const newPct = ((event.pageX - globals.container.offset().left) / globals.container.width())*100;
         const spBarWidth = globals.splitBar.width();
@@ -714,6 +745,7 @@ const MolArt = function(opts) {
 
         resize();
     }
+    */
 
     function loadSmr(uniprotId, opts) {
         let records = [];
@@ -1013,7 +1045,6 @@ const MolArt = function(opts) {
         return retrieveStructureRecords(globals.uniprotId, opts).then(() => {
             return getFasta();
         }).then(function(fasta) {
-
             // simulating user-provided data source
             // let fastaOneLine = fasta.split("\n").slice(1).join('');
             // opts.customDataSources = [
@@ -1041,11 +1072,12 @@ const MolArt = function(opts) {
             //
             //     ];
 
+            /*PV
             globals.pv.initialize({
                 globals: globals
                 ,fasta: fasta
                 ,opts
-            });
+            });*/
 
             globals.lm.initialize({
                 globals: globals,
@@ -1054,19 +1086,19 @@ const MolArt = function(opts) {
             if (!('pdbRecords' in globals)) {
                 globals.lm.showErrorMessage('No PDB mapping or Swissprot or AlphaFold model available for UniprotId ' + globals.uniprotId);
                 globals.eventEmitter.emit('pvReady');
-                pvReady = true;
+                //PV pvReady = true;
                 // resize();
             }
 
             if ('pdbRecords' in globals) {
                 initializeActiveStructure(opts.defaultStructureId);
 
-                globals.pv.getPlugin().getDispatcher().on('ready', () => onPvReady());
-                if (globals.pv.getPlugin().categories.length > 0) {
+                //PV globals.pv.getPlugin().getDispatcher().on('ready', () => onPvReady());
+                //if (globals.pv.getPlugin().categories.length > 0) {
                     // It might happen that the callback was registered only after a category was created and other
                     // categories won't be created. In such case, the onready event would be never called
-                    onPvReady();
-                }
+                //    onPvReady();
+                //}
             }
 
             // })
@@ -1074,9 +1106,10 @@ const MolArt = function(opts) {
 
         }, function (error) {
             showErrorMessage('UniProt record ' + globals.uniprotId + ' could not be retrieved.');
-            globals.eventEmitter.emit('pvReady');
+            //PV globals.eventEmitter.emit('pvReady');
         });
 
+        /*PV
         function onPvReady() {
             globals.pvContainer.find('.up_pftv_category_PREDICTED_STRUCTURES .up_pftv_track-header,.up_pftv_category_EXPERIMENTAL_STRUCTURES .up_pftv_track-header').css('text-transform', 'uppercase');
             globals.pv.modifyHtmlStructure();
@@ -1088,7 +1121,7 @@ const MolArt = function(opts) {
             globals.eventEmitter.emit('pvReady');
             pvReady = true;
             resize();
-        }
+        }*/
 
         function getFasta(opts) {
             if (globals.opts.uniprotId) {
@@ -1122,9 +1155,10 @@ MolArt.prototype.getGlobals = function () {
     return this.globals;
 };
 
+/*PV
 MolArt.prototype.getPvController = function () {
     return this.getGlobals().pv;
-};
+};*/
 
 
 MolArt.prototype.getLmController = function () {
@@ -1135,6 +1169,7 @@ MolArt.prototype.on = function (eventType, callback) {
     this.globals.eventEmitter.on(eventType, callback);
 };
 
+/*PV
 MolArt.prototype.highlightInSequence = function (seqPos, zoomIn) {
     this.getPvController().getPlugin().highlightRegion(seqPos,seqPos)
     if (zoomIn) {
@@ -1146,14 +1181,14 @@ MolArt.prototype.highlightInSequence = function (seqPos, zoomIn) {
 
 MolArt.prototype.deHighlightInSequence = function () {
     this.getPvController().resetHighlight();
-};
+};*/
 
 MolArt.prototype.highlightInStructure = function (seqPos) {
     this.getLmController().highlightResidue(seqPos);
 };
 
 MolArt.prototype.hideSequenceView = function (seqPos) {
-    $(this.globals.pvContainer).css('display', 'none');
+    //PV $(this.globals.pvContainer).css('display', 'none');
     $(this.globals.lmContainer).css('width', '100%');
 };
 /***
