@@ -318,6 +318,7 @@ const pdbMapping = function (record, _source = 'PDB') {
          * @type {*[]}
          */
         let pdbId = Object.keys(json)[0];
+        console.log("this happens tooo", json[pdbId]["UniProt"][uniprotId]["mappings"])
         uniprotRanges = json[pdbId]["UniProt"][uniprotId]["mappings"]
             .filter(m => m["chain_id"].toUpperCase() === getChainId().toUpperCase())
             .map(m => new UniprotRange(m))
@@ -325,6 +326,31 @@ const pdbMapping = function (record, _source = 'PDB') {
 
     const getUniprotRanges = function () {
         return uniprotRanges;
+    }
+
+    const notInUniprotRange = function (pos) {
+        console.log("uniprot ranges", getUniprotRanges());
+        for (let r of getUniprotRanges()) {
+            if (r.start <= pos && pos <= r.end)
+                return false;
+        }
+        return true;
+    }
+
+    const getSkippedUniprotLength = function (pos) {
+        // find length that's been skipped so far
+        let cntSkipped = 0;
+        let endOfLastUniProtRange = 0;
+        for (let r of getUniprotRanges()) {
+            if (r.start > pos)
+                break;
+            if (r.start < pos) {
+                cntSkipped += r.start - endOfLastUniProtRange;
+                endOfLastUniProtRange = r.end;
+                //console.log(`cntSkipped: ${cntSkipped}, endOfLastUniProtRange: ${endOfLastUniProtRange}, range: ${r.start}-${r.end}`)
+            }
+        }
+        return cntSkipped;
     }
 
     const cntStructureInsertedPosBefore = function (pos) {
@@ -342,6 +368,21 @@ const pdbMapping = function (record, _source = 'PDB') {
     }
 
     const mapPosUnpToPdb = function(pos) {
+        /** 
+         * What's going on is that MolArt has a hacky technique for coloring residues in LiteMol
+         * As a result, the residue numbering coming from MolArt has to be sequential, so MolArt
+         * has to account for gaps.
+         * 
+         * Fix required here is that MolArt only accounts for start and end, not for internal gaps.
+         */
+        // if in gap, return -1
+        const intPos = parseInt(pos);
+        if (notInUniprotRange(intPos)) {
+            return -1;
+        }
+
+        console.log(`pos: ${pos}, unpStart: ${getUnpStart()}, pdbStart: ${getPdbStart()}, cnt: ${cntStructureInsertedPosBefore(pos)}`);
+        return getPdbStart() + intPos - getSkippedUniprotLength(intPos);
         return getPdbStart() + parseInt(pos) + cntStructureInsertedPosBefore(pos) - getUnpStart();
     };
 

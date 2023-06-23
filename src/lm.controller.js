@@ -667,6 +667,7 @@ const LmController = function () {
     }
 
     function mapFeatures(features, colors) {
+        console.log("map is called")
         colorRegions(features.map((f, i) => {
             return {
                 seqBegin: f.begin,
@@ -678,11 +679,13 @@ const LmController = function () {
     }
 
     function colorRegions(regions) {
+        console.log("hi I'm molart i'm buggy at mapping these regions")
 
         const modelIdSelections = {}; // mapping of features over all loaded chains
 
         for (const id in mapping) {
             const modelId = mapping[id].getModelId();
+            console.log("modelId", modelId)
 
             if (!(modelId in modelIdSelections)) modelIdSelections[modelId] = [];
 
@@ -693,8 +696,10 @@ const LmController = function () {
             const chainSelections = [];
 
             regions.forEach(r => {
-                let  begin = rec.mapPosUnpToPdb(r.seqBegin);
+                console.log("this function call here", r.seqBegin, r.seqEnd)
+                let begin = rec.mapPosUnpToPdb(r.seqBegin);
                 let end = rec.mapPosUnpToPdb(r.seqEnd);
+                console.log("i'm trying these", begin, end)
                 const boundaryOnly = r.boundary; // whether only begin and end residues should be selected
 
                 if ((boundaryOnly && (rec.isValidPdbPos(begin) || rec.isValidPdbPos(end))) ||
@@ -714,9 +719,11 @@ const LmController = function () {
                             }
                             begin = Math.max(rec.mapPosUnpToPdb(Math.max(r.seqBegin, seqStart)), 0);
                             end = Math.min(rec.mapPosUnpToPdb(Math.min(r.seqEnd, seqEnd)), rec.getPdbEnd());
+                            console.log("Is it going here too?", begin, end);
                             modelIdSelections[modelId].push({ chainId: chainId, begin: begin, end: end, color: r.color, boundaryOnly: boundaryOnly});
                         })
                     } else {
+                        console.log("this is the boundary case");
                         modelIdSelections[modelId].push({ chainId: chainId, begin: begin, end: end, color:  r.color, boundaryOnly: boundaryOnly});
                     }
                 }

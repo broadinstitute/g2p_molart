@@ -875,11 +875,13 @@ const MolArt = function(opts) {
                 }
             }).then(function () {
                 let pdbIds = globals.pdbRecords.map(rec => rec.getPdbId()).filter((v, i, a) => a.indexOf(v) === i);
-                const promises = pdbIds.map(pdbId => services.getUniprotSegments(pdbId));
-                return Promise.all(promises).then(function (mappings) {
+                const segmentPromise = services.getUniprotSegments(opts.uniprotId, pdbIds);
+                return segmentPromise.then(function (mappings) {
                     globals.pdbRecords.forEach(rec => {
                         let pdbIx = pdbIds.indexOf(rec.getPdbId());
-                        rec.parseInsertedRanges(mappings[pdbIx], globals.uniprotId);
+                        console.log("this happens. the mappings object is just wronggg")
+                        const pir = rec.parseInsertedRanges(mappings[pdbIx], globals.uniprotId);
+                        globals.pdbRecords[pdbIx].inserterdRanges = pir;
                     })
                 });
             })

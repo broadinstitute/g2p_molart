@@ -21,107 +21,39 @@ function getUnpToPdbMapping(uniprotId) {
 
 function getObservedRanges(pdbId, chainId) {
     return ajaxQuery(`https://www.ebi.ac.uk/pdbe/api/pdb/entry/polymer_coverage/${pdbId}/chain/${chainId}`);
-
-    // {
-    //   "5wf5": {
-    //     "molecules": [
-    //       {
-    //         "entity_id": 1,
-    //         "chains": [
-    //           {
-    //             "observed": [
-    //               {
-    //                 "start": {
-    //                   "author_residue_number": 3,     --- number of residue in the PDB structure
-    //                   "author_insertion_code": null,
-    //                   "struct_asym_id": "A",
-    //                   "residue_number": 34            --- number of residue in the PDB sequence (the structure does not need to cover the full sequence [even when considering unobserved resiues])
-    //                 },
-    //                 "end": {
-    //                   "author_residue_number": 148,
-    //                   "author_insertion_code": null,
-    //                   "struct_asym_id": "A",
-    //                   "residue_number": 179
-    //                 }
-    //               },
-    //               {
-    //                 "start": {
-    //                   "author_residue_number": 157,
-    //                   "author_insertion_code": null,
-    //                   "struct_asym_id": "A",
-    //                   "residue_number": 188
-    //                 },
-    //                 "end": {
-    //                   "author_residue_number": 307,
-    //                   "author_insertion_code": null,
-    //                   "struct_asym_id": "A",
-    //                   "residue_number": 485
-    //                 }
-    //               }
-    //             ],
-    //             "chain_id": "A",
-    //             "struct_asym_id": "A"
-    //           }
-    //         ]
-    //       }
-    //     ]
-    //   }
-    // }
-    //
-
 }
 
-//sometimes, the structure has insertions with respect to UniProt record, meaning that the UniProt does not
-//need to fully cover the structure, the mappings API has information about segments which correspond to the
-//regions in the structure covered by the uniprot record (e.g. 6i53 where the resiudes 28-35 [including] are not observed
-// in the uniprot record
-// {
-//     "6i53": {
-//     "UniProt": {
-//         "P14867": {
-//             "identifier": "GBRA1_HUMAN",
-//                 "name": "GBRA1_HUMAN",
-//                 "mappings": [
-//                 {
-//                     "entity_id": 2,
-//                     "chain_id": "A",
-//                     "start": {
-//                         "author_residue_number": null,
-//                         "author_insertion_code": "",
-//                         "residue_number": 1
-//                     },
-//                     "unp_end": 27,
-//                     "unp_start": 1,
-//                     "end": {
-//                         "author_residue_number": null,
-//                         "author_insertion_code": "",
-//                         "residue_number": 27
-//                     },
-//                     "struct_asym_id": "B"
-//                 },
-//                 {
-//                     "entity_id": 2,
-//                     "chain_id": "A",
-//                     "start": {
-//                         "author_residue_number": null,
-//                         "author_insertion_code": "",
-//                         "residue_number": 36
-//                     },
-//                     "unp_end": 456,
-//                     "unp_start": 28,
-//                     "end": {
-//                         "author_residue_number": null,
-//                         "author_insertion_code": "",
-//                         "residue_number": 464
-//                     },
-//                     "struct_asym_id": "B"
-//                 },
-//                 ...
 
-function getUniprotSegments(pdbId){
+function getUniprotSegments(uniprotId, pdbIds){
 
-    return ajaxQuery(`https://www.ebi.ac.uk/pdbe/api/mappings/uniprot/${pdbId}`);
+    // this is invalid anyway. return ajaxQuery(`https://www.ebi.ac.uk/pdbe/api/mappings/uniprot/${pdbId}`);
+    const actualUniprotData = ajaxQuery(`https://www.ebi.ac.uk/pdbe/graph-api/uniprot/unipdb/${uniprotId}`)
+        .then(json => {
+            const uniprotData = json[uniprotId];
+            // Use sequence for validation in the future: const sequence = uniprotData.sequence;
+            const data = uniprotData["data"];
+            
+            const segmentsByPdb = {};
 
+            pdbIds.forEach(pdbId => {
+                // find pdbData by looping through data for entry where name is pdbId
+                const pdbData = data.find(entry => entry.name === pdbId);
+                const segments = pdbData["residues"];
+
+                // filter out segments where observed is "N"
+                const observedSegments = segments.filter(segment => segment.observed === "Y");
+
+                // remove duplicates
+                const uniqueSegments = observedSegments.filter((segment, index, self) =>
+                    index === self.findIndex((t) => (
+                        t.startIndex === segment.startIndex && t.endIndex === segment.endIndex
+                    ))
+                );
+                segmentsByPdb[pdbId] = uniqueSegments;
+            });
+
+            return segmentsByPdb;
+        });
 }
 
 function getUnpToSmrMapping(uniprotId) {
