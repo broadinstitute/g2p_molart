@@ -9,14 +9,6 @@ require('../node_modules/semantic-ui-dropdown/dropdown.min');
 require('./lib/semantic-ui-range/range');
 
 
-function capitalize(s) {
-    return s && s[0].toUpperCase() + s.slice(1).toLowerCase();
-}
-
-function beautifyGroupName(name) {
-    return capitalize(name).replace('_', ' ');
-}
-
 const LmController = function () {
 
     const plugin = createPlugin();
@@ -667,7 +659,6 @@ const LmController = function () {
     }
 
     function mapFeatures(features, colors) {
-        console.log("map is called")
         colorRegions(features.map((f, i) => {
             return {
                 seqBegin: f.begin,
@@ -679,13 +670,10 @@ const LmController = function () {
     }
 
     function colorRegions(regions) {
-        console.log("hi I'm molart i'm buggy at mapping these regions")
-
         const modelIdSelections = {}; // mapping of features over all loaded chains
 
         for (const id in mapping) {
             const modelId = mapping[id].getModelId();
-            console.log("modelId", modelId)
 
             if (!(modelId in modelIdSelections)) modelIdSelections[modelId] = [];
 
@@ -696,36 +684,27 @@ const LmController = function () {
             const chainSelections = [];
 
             regions.forEach(r => {
-                console.log("this function call here", r.seqBegin, r.seqEnd)
+                r.seqEnd = r.seqEnd || r.seqBegin;
                 let begin = rec.mapPosUnpToPdb(r.seqBegin);
                 let end = rec.mapPosUnpToPdb(r.seqEnd);
-                console.log("i'm trying these", begin, end)
                 const boundaryOnly = r.boundary; // whether only begin and end residues should be selected
-
-                if ((boundaryOnly && (rec.isValidPdbPos(begin) || rec.isValidPdbPos(end))) ||
-                    //(!boundaryOnly && rec.isValidPdbRegion(begin, end))
-                    !boundaryOnly
-                ) {
-                    //Trim the selction to valid PDB region otherwise Litemol sometimes fail to color it
-                    if (!boundaryOnly) {
-                        // const observedResidues = rec.getObservedResidues();
-                        // begin = Math.max(begin, rec.getPdbStart(), observedResidues.length > 0 ? Math.min(...observedResidues) : 0);
-                        // end = Math.min(end, rec.getPdbEnd(), observedResidues.length > 0 ? Math.max(...observedResidues) : 0);
-                        rec.getObservedRanges().forEach(or => {
-                            const seqStart = rec.mapPosStructToUnp(or.start.posPDBSequence);
-                            const seqEnd = rec.mapPosStructToUnp(or.end.posPDBSequence);
-                            if (r.seqEnd < seqStart || r.seqBegin > seqEnd) {
-                                return;
-                            }
-                            begin = Math.max(rec.mapPosUnpToPdb(Math.max(r.seqBegin, seqStart)), 0);
-                            end = Math.min(rec.mapPosUnpToPdb(Math.min(r.seqEnd, seqEnd)), rec.getPdbEnd());
-                            console.log("Is it going here too?", begin, end);
-                            modelIdSelections[modelId].push({ chainId: chainId, begin: begin, end: end, color: r.color, boundaryOnly: boundaryOnly});
-                        })
-                    } else {
-                        console.log("this is the boundary case");
-                        modelIdSelections[modelId].push({ chainId: chainId, begin: begin, end: end, color:  r.color, boundaryOnly: boundaryOnly});
+            
+                if (!boundaryOnly) {
+                    if (!rec.isValidPdbPos(r.seqBegin)) {
+                        const segment = rec.getNextSegment(r.seqBegin)
+                        if (!segment) return;
+                        begin = rec.mapPosUnpToPdb(segment.start);
+                    } 
+                    if (!rec.isValidPdbPos(r.seqEnd)) {
+                        const segment = rec.getPrevSegment(r.seqEnd)
+                        if (!segment) return;
+                        end = rec.mapPosUnpToPdb(segment.end);
                     }
+                    if (begin > end) return;
+
+                    modelIdSelections[modelId].push({ chainId: chainId, begin: begin, end: end, color: r.color, boundaryOnly: boundaryOnly});
+                } else {
+                    modelIdSelections[modelId].push({ chainId: chainId, begin: begin, end: end, color:  r.color, boundaryOnly: boundaryOnly});
                 }
             });
             modelIdSelections[modelId] = modelIdSelections[modelId].concat(chainSelections);

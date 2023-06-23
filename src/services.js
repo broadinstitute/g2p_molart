@@ -24,10 +24,8 @@ function getObservedRanges(pdbId, chainId) {
 }
 
 
-function getUniprotSegments(uniprotId, pdbIds){
-
-    // this is invalid anyway. return ajaxQuery(`https://www.ebi.ac.uk/pdbe/api/mappings/uniprot/${pdbId}`);
-    const actualUniprotData = ajaxQuery(`https://www.ebi.ac.uk/pdbe/graph-api/uniprot/unipdb/${uniprotId}`)
+async function getUniprotSegments(uniprotId, pdbIds){
+    return ajaxQuery(`https://www.ebi.ac.uk/pdbe/graph-api/uniprot/unipdb/${uniprotId}`)
         .then(json => {
             const uniprotData = json[uniprotId];
             // Use sequence for validation in the future: const sequence = uniprotData.sequence;

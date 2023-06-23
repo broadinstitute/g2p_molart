@@ -36,8 +36,8 @@ class UnobservedRange {
  */
 class UniprotRange {
     constructor(data){
-        this.unpStart = data.startIndex;
-        this.unpEnd = data.endIndex;
+        this.start = data.startIndex;
+        this.end = data.endIndex;
     }
 }
 
@@ -278,13 +278,12 @@ const pdbMapping = function (record, _source = 'PDB') {
         return uniprotRanges;
     }
 
-    const notInUniprotRange = function (pos) {
-        console.log("uniprot ranges", getUniprotRanges());
+    const inUniprotRange = function (pos) {
         for (let r of getUniprotRanges()) {
             if (r.start <= pos && pos <= r.end)
-                return false;
+                return true;
         }
-        return true;
+        return false;
     }
 
     const getSkippedUniprotLength = function (pos) {
@@ -294,13 +293,28 @@ const pdbMapping = function (record, _source = 'PDB') {
         for (let r of getUniprotRanges()) {
             if (r.start > pos)
                 break;
-            if (r.start < pos) {
+            if (r.start <= pos) {
                 cntSkipped += r.start - endOfLastUniProtRange;
-                endOfLastUniProtRange = r.end;
-                //console.log(`cntSkipped: ${cntSkipped}, endOfLastUniProtRange: ${endOfLastUniProtRange}, range: ${r.start}-${r.end}`)
+                endOfLastUniProtRange = r.end + 1;
             }
         }
         return cntSkipped;
+    }
+
+    const getNextSegment = function (pos) {
+        for (let r of getUniprotRanges()) {
+            if (r.start > pos) return r;
+        }
+        return null;
+    }
+
+    const getPrevSegment = function (pos) {
+        let prev = null;
+        for (let r of getUniprotRanges()) {
+            if (r.end > pos) break;
+            prev = r;
+        }
+        return prev;
     }
 
     const cntStructureInsertedPosBefore = function (pos) {
@@ -310,7 +324,7 @@ const pdbMapping = function (record, _source = 'PDB') {
             if (r.start > pos)
                 break;
             if (prev) {
-                cntInserted += parseInt(r.pdbStart.residue_number) - parseInt(prev.pdbEnd.residue_number) - 1;
+                cntInserted += parseInt(r.start) - parseInt(prev.end) - 1;
             }
             prev = r;
         }
@@ -318,22 +332,12 @@ const pdbMapping = function (record, _source = 'PDB') {
     }
 
     const mapPosUnpToPdb = function(pos) {
-        /** 
-         * What's going on is that MolArt has a hacky technique for coloring residues in LiteMol
-         * As a result, the residue numbering coming from MolArt has to be sequential, so MolArt
-         * has to account for gaps.
-         * 
-         * Fix required here is that MolArt only accounts for start and end, not for internal gaps.
-         */
-        // if in gap, return -1
         const intPos = parseInt(pos);
-        if (notInUniprotRange(intPos)) {
+        if (!inUniprotRange(intPos)) {
             return -1;
         }
 
-        console.log(`pos: ${pos}, unpStart: ${getUnpStart()}, pdbStart: ${getPdbStart()}, cnt: ${cntStructureInsertedPosBefore(pos)}`);
         return getPdbStart() + intPos - getSkippedUniprotLength(intPos);
-        return getPdbStart() + parseInt(pos) + cntStructureInsertedPosBefore(pos) - getUnpStart();
     };
 
     const mapPosPdbToUnp = function(pos) {
@@ -352,7 +356,7 @@ const pdbMapping = function (record, _source = 'PDB') {
     };
 
     const isValidPdbPos = function(pos) {
-        return getPdbStart() <= pos && pos <= getPdbEnd();
+        return inUniprotRange(pos);
     };
 
     const mapPosStructToUnp = function (pos) {
@@ -401,6 +405,8 @@ const pdbMapping = function (record, _source = 'PDB') {
         ,setObservedResidues: setObservedResidues
         ,getObservedRanges: getObservedRanges
         ,setObservedRanges: setObservedRanges
+        ,getNextSegment: getNextSegment
+        ,getPrevSegment: getPrevSegment
         ,getInsertedRanges: getUniprotRanges
         ,parseInsertedRanges: parseUniprotRanges
         ,getUnobservedRanges: getUnobservedRanges

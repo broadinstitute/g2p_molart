@@ -878,9 +878,7 @@ const MolArt = function(opts) {
                 const segmentPromise = services.getUniprotSegments(opts.uniprotId, pdbIds);
                 return segmentPromise.then(function (mappings) {
                     globals.pdbRecords.forEach(rec => {
-                        let pdbIx = pdbIds.indexOf(rec.getPdbId());
-                        console.log("this happens. the mappings object is just wronggg")
-                        rec.parseInsertedRanges(mappings[pdbIx], globals.uniprotId);
+                        rec.parseInsertedRanges(mappings[rec.getPdbId()], globals.uniprotId);
                     })
                 });
             })
