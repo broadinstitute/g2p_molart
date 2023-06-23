@@ -36,10 +36,8 @@ class UnobservedRange {
  */
 class UniprotRange {
     constructor(data){
-        this.unpStart = data.unp_start;
-        this.pdbStart = data.start;
-        this.unpEnd = data.unp_end;
-        this.pdbEnd = data.end;
+        this.unpStart = data.startIndex;
+        this.unpEnd = data.endIndex;
     }
 }
 
@@ -271,56 +269,8 @@ const pdbMapping = function (record, _source = 'PDB') {
         setUnobservedRanges();
     };
 
-    const parseUniprotRanges = function (json, uniprotId) {
-        /*** Only the mappings part of the following JSON is passed to the function
-         * {
-  "6i53": {
-    "UniProt": {
-      "P14867": {
-        "identifier": "GBRA1_HUMAN",
-        "name": "GBRA1_HUMAN",
-        "mappings": [
-          {
-            "entity_id": 2,
-            "chain_id": "A",
-            "start": {
-              "author_residue_number": null,
-              "author_insertion_code": "",
-              "residue_number": 1
-            },
-            "unp_end": 27,
-            "unp_start": 1,
-            "end": {
-              "author_residue_number": null,
-              "author_insertion_code": "",
-              "residue_number": 27
-            },
-            "struct_asym_id": "B"
-          },
-          {
-            "entity_id": 2,
-            "chain_id": "A",
-            "start": {
-              "author_residue_number": null,
-              "author_insertion_code": "",
-              "residue_number": 36
-            },
-            "unp_end": 456,
-            "unp_start": 28,
-            "end": {
-              "author_residue_number": null,
-              "author_insertion_code": "",
-              "residue_number": 464
-            },
-            "struct_asym_id": "B"
-          },
-          ...}
-         * @type {*[]}
-         */
-        let pdbId = Object.keys(json)[0];
-        console.log("this happens tooo", json[pdbId]["UniProt"][uniprotId]["mappings"])
-        uniprotRanges = json[pdbId]["UniProt"][uniprotId]["mappings"]
-            .filter(m => m["chain_id"].toUpperCase() === getChainId().toUpperCase())
+    const parseUniprotRanges = function (ranges, uniprotId) {
+        uniprotRanges = ranges
             .map(m => new UniprotRange(m))
     }
 

@@ -880,8 +880,7 @@ const MolArt = function(opts) {
                     globals.pdbRecords.forEach(rec => {
                         let pdbIx = pdbIds.indexOf(rec.getPdbId());
                         console.log("this happens. the mappings object is just wronggg")
-                        const pir = rec.parseInsertedRanges(mappings[pdbIx], globals.uniprotId);
-                        globals.pdbRecords[pdbIx].inserterdRanges = pir;
+                        rec.parseInsertedRanges(mappings[pdbIx], globals.uniprotId);
                     })
                 });
             })

@@ -37,7 +37,7 @@ function getUniprotSegments(uniprotId, pdbIds){
 
             pdbIds.forEach(pdbId => {
                 // find pdbData by looping through data for entry where name is pdbId
-                const pdbData = data.find(entry => entry.name === pdbId);
+                const pdbData = data.find(entry => entry.name.toLowerCase() === pdbId.toLowerCase());
                 const segments = pdbData["residues"];
 
                 // filter out segments where observed is "N"
