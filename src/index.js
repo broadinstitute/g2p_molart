@@ -107,6 +107,14 @@ class ActiveStructure {
     }
 
     exportToPymol(){
+        try {
+            this.exportToPymol2();
+        } catch (e) {
+            console.error(e);
+        }
+    }
+
+    exportToPymol2(){
         let globals = this.globals;
         let content = "import __main__\n" +
             "__main__.pymol_argv = ['pymol', '-qei']\n" +
@@ -157,15 +165,17 @@ class ActiveStructure {
 
         content += `cmd.set("orthoscopic", "on")\n`;
 
-        const annotations = this.globals.pv.extractAnnotationData();
+        /* TODO const annotations = this.globals.pv.extractAnnotationData();
         const annotationsSanitized = {};
         for (const cat in annotations) {
             annotationsSanitized[sanitizeFeatureName(cat)] = annotations[cat];
-        }
+        }*/
+        console.log(this.globals.exportSequenceData());
 
         const fullResiduesSuffix = '_full_residues';
         const cAlphaSuffix = '_c-alpha';
 
+        /*
         Object.keys(annotationsSanitized).forEach(cat => {
             // const featureNames = [];
             const catSubcats = {};
@@ -212,7 +222,7 @@ class ActiveStructure {
             });
             Object.keys(catSubcats).forEach(cs => content += `cmd.group('${cs}', '${catSubcats[cs].join(" ")}')\n`);
             content += `cmd.group('${cat}', '${Object.keys(catSubcats).join(" ")}')\n`;
-        });
+        });*/
 
         const customVisuals = this.globals.lm.getVisualsInteractive();
         Object.keys(customVisuals).forEach(visualId => {
@@ -235,7 +245,7 @@ class ActiveStructure {
             content += `cmd.select('${visualId}${cAlphaSuffix}', '${selectionCA}')\n`;
         })
 
-
+        console.log("hi")
 
         download(content, this.getPyMolFileName(), "text/plain");
     }
@@ -380,6 +390,8 @@ const MolArt = function(opts) {
     globals.containerId = opts.containerId;
     //PV globals.pvContainerId = globals.containerId + 'ProtVista';
     globals.lmContainerId = globals.containerId + 'LiteMol';
+
+    globals.exportSequenceData = opts.exportSequenceDataCallback;
 
     showLoadingIcon(globals.containerId);
 
@@ -548,7 +560,7 @@ const MolArt = function(opts) {
                 ${svgSymbols.download}
             </div>`
         );
-        headerRow.append(pymolDownload);
+        headerRow.append(pymolDownload); // TODO where is the csv download and why isn't this working
 
         /**
          *************** BODY
