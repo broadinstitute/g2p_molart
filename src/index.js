@@ -165,19 +165,16 @@ class ActiveStructure {
 
         content += `cmd.set("orthoscopic", "on")\n`;
 
-        /* TODO const annotations = this.globals.pv.extractAnnotationData();
+        const annotations = this.globals.exportSequenceData();
         const annotationsSanitized = {};
         for (const cat in annotations) {
             annotationsSanitized[sanitizeFeatureName(cat)] = annotations[cat];
-        }*/
-        console.log(this.globals.exportSequenceData());
+        }
 
         const fullResiduesSuffix = '_full_residues';
         const cAlphaSuffix = '_c-alpha';
 
-        /*
         Object.keys(annotationsSanitized).forEach(cat => {
-            // const featureNames = [];
             const catSubcats = {};
             annotationsSanitized[cat].forEach(feature => {
 
@@ -193,8 +190,6 @@ class ActiveStructure {
                 let fEndStructure = this.record.mapPosUnpToPdb(feature.end);
 
                 let range = this.globals.lm.getAuthSeqNumberRange(this.record, fBeginStructure, fEndStructure);
-                // let autSeqNumberBegin = this.globals.lm.getAuthSeqNumber(this.record, fBeginStructure);
-                // let autSeqNumberEnd = this.globals.lm.getAuthSeqNumber(this.record, fEndStructure);
 
                 let autSeqNumberBegin = undefined;
                 let autSeqNumberEnd = undefined;
@@ -222,7 +217,7 @@ class ActiveStructure {
             });
             Object.keys(catSubcats).forEach(cs => content += `cmd.group('${cs}', '${catSubcats[cs].join(" ")}')\n`);
             content += `cmd.group('${cat}', '${Object.keys(catSubcats).join(" ")}')\n`;
-        });*/
+        });
 
         const customVisuals = this.globals.lm.getVisualsInteractive();
         Object.keys(customVisuals).forEach(visualId => {
@@ -244,8 +239,6 @@ class ActiveStructure {
             content += `cmd.select('${visualId}${fullResiduesSuffix}', '${selection}')\n`;
             content += `cmd.select('${visualId}${cAlphaSuffix}', '${selectionCA}')\n`;
         })
-
-        console.log("hi")
 
         download(content, this.getPyMolFileName(), "text/plain");
     }
