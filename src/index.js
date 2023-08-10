@@ -107,14 +107,6 @@ class ActiveStructure {
     }
 
     exportToPymol(){
-        try {
-            this.exportToPymol2();
-        } catch (e) {
-            console.error(e);
-        }
-    }
-
-    exportToPymol2(){
         let globals = this.globals;
         let content = "import __main__\n" +
             "__main__.pymol_argv = ['pymol', '-qei']\n" +

@@ -32,7 +32,7 @@ module.exports = {
         min: [200, 200, 200]
         , max: [50, 50, 50]
     }
-    , boundaryFeatureTypes: ['DISULFID', 'Disulfide Bond']
+    , boundaryFeatureTypes: ['DISULFID', 'Disulfide bond']
     , useCorsForSmr: false
     , sortStructuresOptions: {
         id: 'id'
