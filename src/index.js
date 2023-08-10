@@ -545,7 +545,7 @@ const MolArt = function(opts) {
                 ${svgSymbols.download}
             </div>`
         );
-        headerRow.append(pymolDownload); // TODO where is the csv download and why isn't this working
+        headerRow.append(pymolDownload);
 
         /**
          *************** BODY
