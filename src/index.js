@@ -157,7 +157,7 @@ class ActiveStructure {
 
         content += `cmd.set("orthoscopic", "on")\n`;
 
-        const annotations = this.globals.pv.extractAnnotationData();
+        const annotations = this.globals.exportSequenceData();
         const annotationsSanitized = {};
         for (const cat in annotations) {
             annotationsSanitized[sanitizeFeatureName(cat)] = annotations[cat];
@@ -167,7 +167,6 @@ class ActiveStructure {
         const cAlphaSuffix = '_c-alpha';
 
         Object.keys(annotationsSanitized).forEach(cat => {
-            // const featureNames = [];
             const catSubcats = {};
             annotationsSanitized[cat].forEach(feature => {
 
@@ -183,8 +182,6 @@ class ActiveStructure {
                 let fEndStructure = this.record.mapPosUnpToPdb(feature.end);
 
                 let range = this.globals.lm.getAuthSeqNumberRange(this.record, fBeginStructure, fEndStructure);
-                // let autSeqNumberBegin = this.globals.lm.getAuthSeqNumber(this.record, fBeginStructure);
-                // let autSeqNumberEnd = this.globals.lm.getAuthSeqNumber(this.record, fEndStructure);
 
                 let autSeqNumberBegin = undefined;
                 let autSeqNumberEnd = undefined;
@@ -234,8 +231,6 @@ class ActiveStructure {
             content += `cmd.select('${visualId}${fullResiduesSuffix}', '${selection}')\n`;
             content += `cmd.select('${visualId}${cAlphaSuffix}', '${selectionCA}')\n`;
         })
-
-
 
         download(content, this.getPyMolFileName(), "text/plain");
     }
@@ -380,6 +375,8 @@ const MolArt = function(opts) {
     globals.containerId = opts.containerId;
     //PV globals.pvContainerId = globals.containerId + 'ProtVista';
     globals.lmContainerId = globals.containerId + 'LiteMol';
+
+    globals.exportSequenceData = opts.exportSequenceDataCallback;
 
     showLoadingIcon(globals.containerId);
 
